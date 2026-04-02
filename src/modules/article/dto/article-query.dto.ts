@@ -10,7 +10,7 @@ export class ArticleQueryDto {
 
   @ApiPropertyOptional({
     description: "Filter by category id (uuid v4)",
-    example: "123e4567-e89b-12d3-a456-426614174000",
+    example: "f361871f-e3d2-48b3-bfba-15f3ae573c52",
   })
   @IsOptional()
   @IsString()

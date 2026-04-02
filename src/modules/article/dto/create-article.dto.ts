@@ -1,0 +1,49 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ArticleStatus } from "../types/article.types";
+import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+
+export class CreateArticleDto {
+  @ApiProperty({ description: "Article title", example: "My first article" })
+  @IsString()
+  title: string;
+
+  @ApiProperty({ description: "Article content", example: "Hello world..." })
+  @IsString()
+  content: string;
+
+  @ApiPropertyOptional({
+    description: "Article status",
+    example: ArticleStatus.DRAFT,
+    enum: ArticleStatus,
+  })
+  @IsOptional()
+  @IsEnum(ArticleStatus)
+  status?: ArticleStatus = ArticleStatus.DRAFT;
+
+  @ApiPropertyOptional({
+    description: "Category id (uuid v4)",
+    example: "f361871f-e3d2-48b3-bfba-15f3ae573c52",
+  })
+  @IsOptional()
+  @IsUUID(4)
+  categoryId?: string;
+
+  @ApiPropertyOptional({
+    description: "Author id (uuid v4)",
+    example: "f361871f-e3d2-48b3-bfba-15f3ae573c52",
+  })
+  @IsNotEmpty()
+  @IsUUID(4)
+  authorId: string;
+
+  @ApiPropertyOptional({
+    description: "Tags",
+    example: ["nodejs", "nestjs"],
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[] = [];
+}
+
