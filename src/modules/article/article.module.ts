@@ -8,6 +8,7 @@ import { CategoryModule } from "../category/category.module";
   imports: [UserModule, CategoryModule],
   controllers: [ArticleController],
   providers: [ArticleService],
+  exports: [ArticleService],
 })
 export class ArticleModule {}
 

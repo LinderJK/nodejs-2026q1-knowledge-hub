@@ -6,4 +6,5 @@ export const swaggerConfig = new DocumentBuilder()
   .addTag("User", "User services")
   .addTag("Article", "Article services")
   .addTag("Category", "Category services")
+  .addTag("Comment", "Comment services")
   .build();
