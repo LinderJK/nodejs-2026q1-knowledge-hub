@@ -1,25 +1,25 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { Article, ArticleStatus } from "./types/article.types";
-import { CreateArticleDto } from "./dto/create-article.dto";
-import { UpdateArticleDto } from "./dto/update-article.dto";
-import { ArticleQueryDto } from "./dto/article-query.dto";
-import { UserService } from "../user/user.service";
-import { CategoryService } from "../category/category.service";
-import { InMemoryStore } from "../../common/store/in-memory.store";
-import { GetListQueryDto, PaginatedListDto } from "src/common/store/get-list.dto";
-import { SortOrder } from "src/common/types/sort.types";
-import { ArticleSortBy } from "./types/article.types";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Article, ArticleStatus } from './types/article.types';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
+import { ArticleQueryDto } from './dto/article-query.dto';
+import { UserService } from '../user/user.service';
+import { CategoryService } from '../category/category.service';
+import { InMemoryStore } from '../../common/store/in-memory.store';
+import {
+  GetListQueryDto,
+  PaginatedListDto,
+} from 'src/common/store/get-list.dto';
+import { SortOrder } from 'src/common/types/sort.types';
+import { ArticleSortBy } from './types/article.types';
 
 @Injectable()
 export class ArticleService {
-  
-
   constructor(
     private readonly userService: UserService,
     private readonly categoryService: CategoryService,
-    private readonly store: InMemoryStore
-  ) {
-  }
+    private readonly store: InMemoryStore,
+  ) {}
 
   getArticles(query?: ArticleQueryDto): PaginatedListDto<Article> {
     const q = query ?? ({} as ArticleQueryDto);
@@ -28,10 +28,10 @@ export class ArticleService {
     if (q.status !== undefined) {
       list = list.filter((a) => a.status === q.status);
     }
-    if (q.categoryId !== undefined && q.categoryId !== "") {
+    if (q.categoryId !== undefined && q.categoryId !== '') {
       list = list.filter((a) => a.categoryId === q.categoryId);
     }
-    if (q.tag !== undefined && q.tag !== "") {
+    if (q.tag !== undefined && q.tag !== '') {
       list = list.filter((a) => a.tags.includes(q.tag));
     }
 
@@ -48,7 +48,7 @@ export class ArticleService {
   async getArticleById(id: string): Promise<Article> {
     const article = this.store.articles.find((a) => a.id === id);
     if (!article) {
-      throw new NotFoundException("Article not found");
+      throw new NotFoundException('Article not found');
     }
     return article;
   }
@@ -76,7 +76,7 @@ export class ArticleService {
   async updateArticle(id: string, dto: UpdateArticleDto): Promise<Article> {
     const idx = this.store.articles.findIndex((a) => a.id === id);
     if (idx === -1) {
-      throw new NotFoundException("Article not found");
+      throw new NotFoundException('Article not found');
     }
 
     const current = this.store.articles[idx];
@@ -93,7 +93,7 @@ export class ArticleService {
   async deleteArticle(id: string): Promise<void> {
     const idx = this.store.articles.findIndex((a) => a.id === id);
     if (idx === -1) {
-      throw new NotFoundException("Article not found");
+      throw new NotFoundException('Article not found');
     }
     this.store.articles.splice(idx, 1);
 
@@ -101,4 +101,3 @@ export class ArticleService {
     this.store.comments = this.store.comments.filter((c) => c.articleId !== id);
   }
 }
-

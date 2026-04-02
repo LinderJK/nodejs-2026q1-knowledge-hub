@@ -1,20 +1,27 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { ArticleStatus } from "../types/article.types";
-import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ArticleStatus } from '../types/article.types';
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateArticleDto {
-  @ApiProperty({ description: "Article title", example: "My first article" })
+  @ApiProperty({ description: 'Article title', example: 'My first article' })
   @IsString()
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ description: "Article content", example: "Hello world..." })
+  @ApiProperty({ description: 'Article content', example: 'Hello world...' })
   @IsString()
   @IsNotEmpty()
   content: string;
 
   @ApiPropertyOptional({
-    description: "Article status",
+    description: 'Article status',
     example: ArticleStatus.DRAFT,
     enum: ArticleStatus,
   })
@@ -23,24 +30,24 @@ export class CreateArticleDto {
   status?: ArticleStatus = ArticleStatus.DRAFT;
 
   @ApiPropertyOptional({
-    description: "Category id (uuid v4)",
-    example: "f361871f-e3d2-48b3-bfba-15f3ae573c52",
+    description: 'Category id (uuid v4)',
+    example: 'f361871f-e3d2-48b3-bfba-15f3ae573c52',
   })
   @IsOptional()
   @IsUUID(4)
   categoryId?: string;
 
   @ApiPropertyOptional({
-    description: "Author id (uuid v4)",
-    example: "f361871f-e3d2-48b3-bfba-15f3ae573c52",
+    description: 'Author id (uuid v4)',
+    example: 'f361871f-e3d2-48b3-bfba-15f3ae573c52',
   })
   @IsOptional()
   @IsUUID(4)
   authorId?: string | null;
 
   @ApiPropertyOptional({
-    description: "Tags",
-    example: ["nodejs", "nestjs"],
+    description: 'Tags',
+    example: ['nodejs', 'nestjs'],
     type: [String],
   })
   @IsOptional()
@@ -48,4 +55,3 @@ export class CreateArticleDto {
   @IsString({ each: true })
   tags?: string[] = [];
 }
-

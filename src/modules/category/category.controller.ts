@@ -10,31 +10,38 @@ import {
   Post,
   Put,
   Query,
-} from "@nestjs/common";
-import { CategoryService } from "./category.service";
-import { Category } from "./types/category.types";
-import { CreateCategoryDto } from "./dto/create-category.dto";
-import { UpdateCategoryDto } from "./dto/update-category.dto";
-import { ApiCreateCategory, ApiDeleteCategory, ApiGetCategories, ApiGetCategoryById, ApiUpdateCategory } from "./decorators/swagger.decorators";
-import { CreateCategoryPipe } from "./pipes/create-category.pipe";
-import { CategoryQueryDto } from "./dto/category-query.dto";
-import { PaginatedListDto } from "src/common/store/get-list.dto";
+} from '@nestjs/common';
+import { CategoryService } from './category.service';
+import { Category } from './types/category.types';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import {
+  ApiCreateCategory,
+  ApiDeleteCategory,
+  ApiGetCategories,
+  ApiGetCategoryById,
+  ApiUpdateCategory,
+} from './decorators/swagger.decorators';
+import { CreateCategoryPipe } from './pipes/create-category.pipe';
+import { CategoryQueryDto } from './dto/category-query.dto';
+import { PaginatedListDto } from 'src/common/store/get-list.dto';
 
-
-@Controller("category")
+@Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Get()
   @ApiGetCategories()
-  async getCategories(@Query() query: CategoryQueryDto): Promise<PaginatedListDto<Category>> {
+  async getCategories(
+    @Query() query: CategoryQueryDto,
+  ): Promise<PaginatedListDto<Category>> {
     return this.categoryService.getCategories(query);
   }
 
-  @Get(":id")
+  @Get(':id')
   @ApiGetCategoryById()
   async getCategoryById(
-    @Param("id", new ParseUUIDPipe({ version: "4" })) id: string
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<Category> {
     return this.categoryService.getCategoryById(id);
   }
@@ -42,26 +49,27 @@ export class CategoryController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateCategory()
-  async createCategory(@Body(CreateCategoryPipe) dto: CreateCategoryDto): Promise<Category> {
+  async createCategory(
+    @Body(CreateCategoryPipe) dto: CreateCategoryDto,
+  ): Promise<Category> {
     return this.categoryService.createCategory(dto);
   }
 
-  @Put(":id")
+  @Put(':id')
   @ApiUpdateCategory()
   async updateCategory(
-    @Param("id", new ParseUUIDPipe({ version: "4" })) id: string,
-    @Body() dto: UpdateCategoryDto
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: UpdateCategoryDto,
   ): Promise<Category> {
     return this.categoryService.updateCategory(id, dto);
   }
 
-  @Delete(":id")
+  @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiDeleteCategory()
   async deleteCategory(
-    @Param("id", new ParseUUIDPipe({ version: "4" })) id: string
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<void> {
     return this.categoryService.deleteCategory(id);
   }
 }
-

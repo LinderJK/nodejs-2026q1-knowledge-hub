@@ -1,6 +1,6 @@
-import { Module } from "@nestjs/common";
-import { CategoryService } from "./category.service";
-import { CategoryController } from "./category.controller";
+import { Module } from '@nestjs/common';
+import { CategoryService } from './category.service';
+import { CategoryController } from './category.controller';
 
 @Module({
   imports: [],
@@ -9,4 +9,3 @@ import { CategoryController } from "./category.controller";
   exports: [CategoryService],
 })
 export class CategoryModule {}
-

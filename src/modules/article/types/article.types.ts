@@ -16,7 +16,6 @@ export interface Article {
   updatedAt: number; // timestamp of last update
 }
 
-
 export enum ArticleSortBy {
   CREATED_AT = 'createdAt',
   UPDATED_AT = 'updatedAt',
