@@ -1,12 +1,17 @@
 import { applyDecorators } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiParam, ApiResponse } from "@nestjs/swagger";
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from "@nestjs/swagger";
 import { CreateUserDto } from "../dto/create-user.dto";
 import { UpdatePasswordDto } from "../dto/update-password.dto";
+import { PaginatedUsersDto } from "../dto/paginated-users.dto";
+import { UserRole } from "../types/user.types";
 
 export const ApiGetUsers = () => {
     return applyDecorators(
-        ApiOperation({ summary: 'Get all users' }),
-        ApiResponse({ status: 200, description: 'Successful operation' }),
+        ApiOperation({ summary: 'Get users (paginated)' }),
+        ApiQuery({ name: 'role', required: false, enum: UserRole, description: 'Filter by role' }),
+        ApiQuery({ name: 'page', required: false, type: Number, example: 1, description: 'Page (1-based)' }),
+        ApiQuery({ name: 'limit', required: false, type: Number, example: 10, description: 'Page size' }),
+        ApiResponse({ status: 200, description: 'Paginated list', type: PaginatedUsersDto }),
     );
 };
 

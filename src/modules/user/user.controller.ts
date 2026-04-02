@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { PublicUser, User } from "./types/user.types";
+import { PublicUser } from "./types/user.types";
 import { ApiCreateUser, ApiDeleteUser, ApiGetUsers, ApiUpdateUserPassword, GetUserByIdParams } from "./decorators/swagger.decorators";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdatePasswordDto } from "./dto/update-password.dto";
+import { GetUsersQueryDto } from "./dto/get-users-query.dto";
+import { PaginatedUsersDto } from "./dto/paginated-users.dto";
 
 
 
@@ -14,8 +16,8 @@ export class UserController {
 
     @Get()
     @ApiGetUsers()
-    async getUsers(): Promise<PublicUser[]> {
-        return this.userService.getUsers();
+    async getUsers(@Query() query: GetUsersQueryDto): Promise<PaginatedUsersDto> {
+        return this.userService.getUsers(query);
     }
 
     @Get(':id')

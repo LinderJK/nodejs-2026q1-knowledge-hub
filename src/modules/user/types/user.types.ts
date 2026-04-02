@@ -16,3 +16,14 @@ export interface User {
   }
 
   export type PublicUser = Omit<User, 'password'>;
+
+  export enum UserSortBy {
+    CREATED_AT = 'createdAt',
+    UPDATED_AT = 'updatedAt',
+    ROLE = 'role',
+  }
+
+  export enum SortOrder {
+    ASC = 'asc',
+    DESC = 'desc',
+  }
