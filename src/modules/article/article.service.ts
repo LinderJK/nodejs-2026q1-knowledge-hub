@@ -5,23 +5,23 @@ import { UpdateArticleDto } from "./dto/update-article.dto";
 import { ArticleQueryDto } from "./dto/article-query.dto";
 import { UserService } from "../user/user.service";
 import { CategoryService } from "../category/category.service";
+import { InMemoryStore } from "src/common/store/in-memory.store";
 
 @Injectable()
 export class ArticleService {
-  private readonly articleRepository: Article[];
+  
 
   constructor(
     private readonly userService: UserService,
     private readonly categoryService: CategoryService,
+    private readonly store: InMemoryStore
   ) {
-    this.articleRepository = [];
-
   }
 
   async getArticles(query?: ArticleQueryDto): Promise<Article[]> {
     const { status, categoryId, tag } = query ?? {};
 
-    return this.articleRepository.filter((article) => {
+    return this.store.articles.filter((article) => {
       if (status && article.status !== status) return false;
       if (categoryId && article.categoryId !== categoryId) return false;
       if (tag && !article.tags.includes(tag)) return false;
@@ -30,7 +30,7 @@ export class ArticleService {
   }
 
   async getArticleById(id: string): Promise<Article> {
-    const article = this.articleRepository.find((a) => a.id === id);
+    const article = this.store.articles.find((a) => a.id === id);
     if (!article) {
       throw new NotFoundException("Article not found");
     }
@@ -53,33 +53,33 @@ export class ArticleService {
       updatedAt: now,
     };
 
-    this.articleRepository.push(newArticle);
+    this.store.articles.push(newArticle);
     return newArticle;
   }
 
   async updateArticle(id: string, dto: UpdateArticleDto): Promise<Article> {
-    const idx = this.articleRepository.findIndex((a) => a.id === id);
+    const idx = this.store.articles.findIndex((a) => a.id === id);
     if (idx === -1) {
       throw new NotFoundException("Article not found");
     }
 
-    const current = this.articleRepository[idx];
+    const current = this.store.articles[idx];
     const updated: Article = {
       ...current,
       ...dto,
       updatedAt: Date.now(),
     };
 
-    this.articleRepository[idx] = updated;
+    this.store.articles[idx] = updated;
     return updated;
   }
 
   async deleteArticle(id: string): Promise<void> {
-    const idx = this.articleRepository.findIndex((a) => a.id === id);
+    const idx = this.store.articles.findIndex((a) => a.id === id);
     if (idx === -1) {
       throw new NotFoundException("Article not found");
     }
-    this.articleRepository.splice(idx, 1);
+    this.store.articles.splice(idx, 1);
   }
 }
 

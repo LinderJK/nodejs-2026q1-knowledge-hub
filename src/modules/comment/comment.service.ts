@@ -4,17 +4,17 @@ import { CreateCommentDto } from "./dto/create-comment.dto";
 import { ArticleService } from "../article/article.service";
 import { GetCommentsQueryDto } from "./dto/get-comments-query.dto";
 import { UserService } from "../user/user.service";
+import { InMemoryStore } from "src/common/store/in-memory.store";
 
 @Injectable()
 export class CommentService {
-  private readonly commentRepository: Comment[];
+    
 
-  constructor(private readonly articleService: ArticleService, private readonly userService: UserService) {
-    this.commentRepository = [];
+  constructor(private readonly store: InMemoryStore, private readonly articleService: ArticleService, private readonly userService: UserService) {
   }
 
   async getComments(query: GetCommentsQueryDto): Promise<Comment[]> {
-    return this.commentRepository.filter((c) => c.articleId === query.articleId);
+    return this.store.comments.filter((c) => c.articleId === query.articleId);
   }
 
   async createComment(dto: CreateCommentDto): Promise<Comment> {
@@ -32,16 +32,16 @@ export class CommentService {
       createdAt: Date.now(),
     };
 
-    this.commentRepository.push(newComment);
+    this.store.comments.push(newComment);
     return newComment;
   }
 
   async deleteComment(id: string): Promise<void> {
-    const idx = this.commentRepository.findIndex((c) => c.id === id);
+    const idx = this.store.comments.findIndex((c) => c.id === id);
     if (idx === -1) {
       throw new NotFoundException("Comment not found");
     }
-    this.commentRepository.splice(idx, 1);
+    this.store.comments.splice(idx, 1);
   }
 }
 
