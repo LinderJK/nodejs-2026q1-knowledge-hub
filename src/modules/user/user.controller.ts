@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { User } from "./types/user.types";
+import { PublicUser, User } from "./types/user.types";
 import { ApiCreateUser, ApiGetUsers } from "./decorators/swagger.decorators";
 import { CreateUserDto } from "./dto/create-user.dto";
 
@@ -13,23 +13,23 @@ export class UserController {
 
     @Get()
     @ApiGetUsers()
-    async getUsers(): Promise<User[]> {
+    async getUsers(): Promise<PublicUser[]> {
         return this.userService.getUsers();
     }
 
     @Get(':id')
-    async getUserById(@Param('id') id: string): Promise<User> {
+    async getUserById(@Param('id') id: string): Promise<PublicUser> {
         return this.userService.getUserById(id);
     }
 
     @Post()
     @ApiCreateUser()
-    async createUser(@Body() user: CreateUserDto): Promise<User> {
+    async createUser(@Body() user: CreateUserDto): Promise<PublicUser> {
         return this.userService.createUser(user);
     }
 
     @Put(':id')
-    async updateUser(@Param('id') id: string, @Body() user: User): Promise<User> {
+    async updateUser(@Param('id') id: string, @Body() user: PublicUser): Promise<PublicUser> {
         return this.userService.updateUser(id, user);
     }
 
