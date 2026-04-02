@@ -4,6 +4,7 @@ import { CreateArticleDto } from "./dto/create-article.dto";
 import { UpdateArticleDto } from "./dto/update-article.dto";
 import { ArticleQueryDto } from "./dto/article-query.dto";
 import { UserService } from "../user/user.service";
+import { CategoryService } from "../category/category.service";
 
 @Injectable()
 export class ArticleService {
@@ -11,7 +12,7 @@ export class ArticleService {
 
   constructor(
     private readonly userService: UserService,
-    // private readonly categoryService: CategoryService,
+    private readonly categoryService: CategoryService,
   ) {
     this.articleRepository = [];
 
@@ -42,13 +43,17 @@ export class ArticleService {
     if (!author) {
       throw new NotFoundException("Author not found, check if the user exists");
     }
+    const category = await this.categoryService.getCategoryById(dto.categoryId);
+    if (!category) {
+      throw new NotFoundException("Category not found, check if the category exists");
+    }
     const newArticle: Article = {
       id: crypto.randomUUID(),
       title: dto.title,
       content: dto.content,
       status: dto.status ?? ArticleStatus.DRAFT,
       authorId: author.id,
-      categoryId: dto.categoryId,
+      categoryId: category.id,
       tags: dto.tags ?? [],
       createdAt: now,
       updatedAt: now,
