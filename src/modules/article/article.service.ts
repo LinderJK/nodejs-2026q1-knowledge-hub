@@ -3,8 +3,6 @@ import { Article, ArticleStatus } from './types/article.types';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleQueryDto } from './dto/article-query.dto';
-import { UserService } from '../user/user.service';
-import { CategoryService } from '../category/category.service';
 import { InMemoryStore } from '../../common/store/in-memory.store';
 import {
   GetListQueryDto,
@@ -15,11 +13,7 @@ import { ArticleSortBy } from './types/article.types';
 
 @Injectable()
 export class ArticleService {
-  constructor(
-    private readonly userService: UserService,
-    private readonly categoryService: CategoryService,
-    private readonly store: InMemoryStore,
-  ) {}
+  constructor(private readonly store: InMemoryStore) {}
 
   getArticles(query?: ArticleQueryDto): PaginatedListDto<Article> {
     const q = query ?? ({} as ArticleQueryDto);
@@ -53,17 +47,33 @@ export class ArticleService {
     return article;
   }
 
-  async createArticle(dto: CreateArticleDto): Promise<Article> {
+  createArticle(dto: CreateArticleDto): Article {
     const now = Date.now();
-    const author = await this.userService.getUserById(dto.authorId);
-    const category = await this.categoryService.getCategoryById(dto.categoryId);
+    let authorId: string | null = dto.authorId ?? null;
+    let categoryId: string | null = dto.categoryId ?? null;
+
+    // if (dto.authorId != null && dto.authorId !== '') {
+    //   const user = this.store.users.find((u) => u.id === dto.authorId);
+    //   if (!user) {
+    //     throw new NotFoundException('User not found');
+    //   }
+    //   authorId = user.id;
+    // }
+    // if (dto.categoryId != null && dto.categoryId !== '') {
+    //   const category = this.store.categories.find((c) => c.id === dto.categoryId);
+    //   if (!category) {
+    //     throw new NotFoundException('Category not found');
+    //   }
+    //   categoryId = category.id;
+    // }
+
     const newArticle: Article = {
       id: crypto.randomUUID(),
       title: dto.title,
       content: dto.content,
       status: dto.status ?? ArticleStatus.DRAFT,
-      authorId: author?.id ?? null,
-      categoryId: category?.id ?? null,
+      authorId,
+      categoryId,
       tags: dto.tags ?? [],
       createdAt: now,
       updatedAt: now,

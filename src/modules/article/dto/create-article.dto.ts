@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateArticleDto {
@@ -34,14 +35,16 @@ export class CreateArticleDto {
     example: 'f361871f-e3d2-48b3-bfba-15f3ae573c52',
   })
   @IsOptional()
+  @ValidateIf((o: CreateArticleDto) => o.categoryId != null && o.categoryId !== '')
   @IsUUID(4)
-  categoryId?: string;
+  categoryId?: string | null;
 
   @ApiPropertyOptional({
     description: 'Author id (uuid v4)',
     example: 'f361871f-e3d2-48b3-bfba-15f3ae573c52',
   })
   @IsOptional()
+  @ValidateIf((o: CreateArticleDto) => o.authorId != null && o.authorId !== '')
   @IsUUID(4)
   authorId?: string | null;
 

@@ -23,6 +23,21 @@ export const ApiGetComments = () => {
   );
 };
 
+export const ApiGetCommentById = () => {
+  return applyDecorators(
+    ApiOperation({ summary: 'Get comment by id' }),
+    ApiParam({
+      name: 'id',
+      type: String,
+      description: 'Comment id',
+      example: '123e4567-e89b-12d3-a456-426614174000',
+    }),
+    ApiResponse({ status: 200, description: 'Successful operation' }),
+    ApiResponse({ status: 400, description: 'Bad request' }),
+    ApiResponse({ status: 404, description: 'Not found' }),
+  );
+};
+
 export const ApiCreateComment = () => {
   return applyDecorators(
     ApiOperation({ summary: 'Create comment' }),

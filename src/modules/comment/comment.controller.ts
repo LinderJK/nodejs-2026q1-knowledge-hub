@@ -17,10 +17,10 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import {
   ApiCreateComment,
   ApiDeleteComment,
+  ApiGetCommentById,
   ApiGetComments,
 } from './decorators/swagger.decorators';
 import { CommentCreatePipe } from './pipe/comment-create.pipe';
-import { PaginatedListDto } from 'src/common/store/get-list.dto';
 
 @Controller('comment')
 export class CommentController {
@@ -28,10 +28,16 @@ export class CommentController {
 
   @Get()
   @ApiGetComments()
-  async getComments(
-    @Query() query: GetCommentsQueryDto,
-  ): Promise<PaginatedListDto<Comment>> {
+  getComments(@Query() query: GetCommentsQueryDto): Comment[] {
     return this.commentService.getComments(query);
+  }
+
+  @Get(':id')
+  @ApiGetCommentById()
+  async getCommentById(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<Comment> {
+    return this.commentService.getCommentById(id);
   }
 
   @Post()
