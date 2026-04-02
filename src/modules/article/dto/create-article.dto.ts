@@ -5,10 +5,12 @@ import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class
 export class CreateArticleDto {
   @ApiProperty({ description: "Article title", example: "My first article" })
   @IsString()
+  @IsNotEmpty()
   title: string;
 
   @ApiProperty({ description: "Article content", example: "Hello world..." })
   @IsString()
+  @IsNotEmpty()
   content: string;
 
   @ApiPropertyOptional({
