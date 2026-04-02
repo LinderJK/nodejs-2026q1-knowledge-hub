@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PublicUser, User } from "./types/user.types";
 import { CreateUserDto } from "./dto/create-user.dto";
 
@@ -40,6 +40,19 @@ export class UserService {
             updatedAt: Date.now(),
         };
         return this.toPublicUser(this.userRepository[userIndex]);
+    }
+
+    async updateUserPassword(id: string, oldPassword: string, newPassword: string): Promise<PublicUser> {
+        const user = this.userRepository.find((user) => user.id === id);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        if (user.password !== oldPassword) {
+            throw new ForbiddenException('Old password is incorrect');
+        }
+        user.password = newPassword;
+        user.updatedAt = Date.now();
+        return this.toPublicUser(user);
     }
 
     async deleteUser(id: string): Promise<void> {

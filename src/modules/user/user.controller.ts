@@ -1,8 +1,9 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { PublicUser, User } from "./types/user.types";
-import { ApiCreateUser, ApiGetUsers } from "./decorators/swagger.decorators";
+import { ApiCreateUser, ApiGetUsers, ApiUpdateUserPassword } from "./decorators/swagger.decorators";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdatePasswordDto } from "./dto/update-password.dto";
 
 
 
@@ -28,12 +29,21 @@ export class UserController {
         return this.userService.createUser(user);
     }
 
+    // @Put(':id')
+    // async updateUser(
+    //     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    //     @Body() user: PublicUser
+    // ): Promise<PublicUser> {
+    //     return this.userService.updateUser(id, user);
+    // }
+
     @Put(':id')
-    async updateUser(
+    @ApiUpdateUserPassword()
+    async updateUserPassword(
         @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-        @Body() user: PublicUser
+        @Body() updatePasswordDto: UpdatePasswordDto
     ): Promise<PublicUser> {
-        return this.userService.updateUser(id, user);
+        return this.userService.updateUserPassword(id, updatePasswordDto.oldPassword, updatePasswordDto.newPassword);
     }
 
     @Delete(':id')
