@@ -4,6 +4,7 @@ import { CreateUserDto } from "./dto/create-user.dto";
 import { GetUsersQueryDto } from "./dto/get-users-query.dto";
 import { PaginatedUsersDto } from "./dto/paginated-users.dto";
 import { InMemoryStore } from "../../common/store/in-memory.store";
+import { GetListQueryDto, PaginatedListDto } from "src/common/store/get-list.dto";
 
 
 @Injectable()
@@ -70,19 +71,8 @@ export class UserService {
         this.store.comments = this.store.comments.filter((c) => c.authorId !== id);
     }
 
-    getUsers(query: GetUsersQueryDto): PaginatedUsersDto {
-        const page = query.page ?? 1;
-        const limit = query.limit ?? 10;
-        const sortBy = query.sortBy ?? UserSortBy.CREATED_AT;
-        const sortOrder = query.sortOrder ?? SortOrder.ASC;
-
-        let list = [...this.store.users];
-        list.sort((a, b) => this.compareUsersByField(a, b, sortBy, sortOrder));
-        const total = list.length;
-        const start = (page - 1) * limit;
-        const data = list.slice(start, start + limit).map((u) => this.toPublicUser(u));
-
-        return { total, page, limit, data };
+    getUsers(query: GetListQueryDto<User>): PaginatedListDto<User> {
+        return this.store.getFilteredAndSortedList(this.store.users, query);
     }
 
     private toPublicUser(user: User): PublicUser {
@@ -90,20 +80,6 @@ export class UserService {
         return publicUser as PublicUser;
     }
 
-    private compareUsersByField(a: User, b: User, sortBy: UserSortBy, order: SortOrder): number {
-        const valueA = a[sortBy];
-        const valueB = b[sortBy];
-        let result = 0;
-
-        if (typeof valueA === "number" && typeof valueB === "number") {
-            result = valueA - valueB;
-        } else {
-            const stringValueA = String(valueA ?? "");
-            const stringValueB = String(valueB ?? "");
-            result = stringValueA.localeCompare(stringValueB, undefined, { sensitivity: "base" });
-        }
-
-        return order === SortOrder.DESC ? -result : result;
-    }
+    
 
 }

@@ -1,6 +1,6 @@
 import { UserRole } from "../../../modules/user/types/user.types";
 
-export const seedData = [
+export const usersSeedData = [
     {
         login: 'admin',
         password: 'admin',
