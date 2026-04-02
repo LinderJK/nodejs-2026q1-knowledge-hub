@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { User } from "./types/user.types";
+import { PublicUser, User } from "./types/user.types";
 import { CreateUserDto } from "./dto/create-user.dto";
 
 
@@ -10,7 +10,7 @@ export class UserService {
         this.userRepository = [];
     }
 
-    async createUser(user: CreateUserDto): Promise<User> {
+    async createUser(user: CreateUserDto): Promise<PublicUser> {
         const newUser: User = {
             ...user,
             id: crypto.randomUUID(),
@@ -18,18 +18,18 @@ export class UserService {
             updatedAt: Date.now(), // timestamp of last update
         };
         this.userRepository.push(newUser);
-        return newUser as User;
+        return this.toPublicUser(newUser);
     }
 
-    async getUserById(id: string): Promise<User> {
+    async getUserById(id: string): Promise<PublicUser> {
         const user = this.userRepository.find((user) => user.id === id);
         if (!user) {
             throw new NotFoundException('User not found');
         }
-        return user;
+        return this.toPublicUser(user);
     }
 
-    async updateUser(id: string, user: User): Promise<User> {
+    async updateUser(id: string, user: PublicUser): Promise<PublicUser> {
         const userIndex = this.userRepository.findIndex((user) => user.id === id);
         if (userIndex === -1) {
             throw new NotFoundException('User not found');
@@ -39,7 +39,7 @@ export class UserService {
             ...user,
             updatedAt: Date.now(),
         };
-        return this.userRepository[userIndex];
+        return this.toPublicUser(this.userRepository[userIndex]);
     }
 
     async deleteUser(id: string): Promise<void> {
@@ -50,8 +50,13 @@ export class UserService {
         this.userRepository.splice(userIndex, 1);
     }
 
-    async getUsers(): Promise<User[]> {
-        return this.userRepository;
+    async getUsers(): Promise<PublicUser[]> {
+            return this.userRepository.map((user) => this.toPublicUser(user));
+    }
+
+    private toPublicUser(user: User): PublicUser {
+        const { password, ...publicUser } = user;
+        return publicUser as PublicUser;
     }
 
 }

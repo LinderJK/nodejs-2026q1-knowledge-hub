@@ -14,3 +14,5 @@ export interface User {
     EDITOR = 'editor',
     VIEWER = 'viewer',
   }
+
+  export type PublicUser = Omit<User, 'password'>;
