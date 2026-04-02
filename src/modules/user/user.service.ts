@@ -95,7 +95,8 @@ export class UserService {
   }
 
   private toPublicUser(user: User): PublicUser {
-    const { password, ...publicUser } = user;
+    const { password: _password, ...publicUser } = user;
+    void _password;
     return publicUser as PublicUser;
   }
 }
