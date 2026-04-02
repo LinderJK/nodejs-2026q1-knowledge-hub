@@ -1,10 +1,10 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { PublicUser, SortOrder, User, UserSortBy } from "./types/user.types";
+import { PublicUser, User, UserSortBy } from "./types/user.types";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { GetUsersQueryDto } from "./dto/get-users-query.dto";
-import { PaginatedUsersDto } from "./dto/paginated-users.dto";
 import { InMemoryStore } from "../../common/store/in-memory.store";
 import { GetListQueryDto, PaginatedListDto } from "src/common/store/get-list.dto";
+import { SortOrder } from "src/common/types/sort.types";
 
 
 @Injectable()
@@ -71,8 +71,14 @@ export class UserService {
         this.store.comments = this.store.comments.filter((c) => c.authorId !== id);
     }
 
-    getUsers(query: GetListQueryDto<User>): PaginatedListDto<User> {
-        return this.store.getFilteredAndSortedList(this.store.users, query);
+    getUsers(query: GetUsersQueryDto): PaginatedListDto<User> {
+        const listQuery: GetListQueryDto<User> = {
+            page: query.page,
+            limit: query.limit,
+            sortBy: (query.sortBy ?? UserSortBy.CREATED_AT) as keyof User,
+            sortOrder: query.sortOrder ?? SortOrder.ASC,
+        };
+        return this.store.getFilteredAndSortedList([...this.store.users], listQuery);
     }
 
     private toPublicUser(user: User): PublicUser {

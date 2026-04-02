@@ -1,6 +1,8 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { ArticleStatus } from "../types/article.types";
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { ArticleSortBy, ArticleStatus } from "../types/article.types";
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { Type } from "class-transformer";
+import { SortOrder } from "src/common/types/sort.types";
 
 export class ArticleQueryDto {
   @ApiPropertyOptional({ description: "Filter by status", enum: ArticleStatus, example: ArticleStatus.PUBLISHED })
@@ -20,5 +22,32 @@ export class ArticleQueryDto {
   @IsOptional()
   @IsString()
   tag?: string;
+
+  @ApiPropertyOptional({ description: "Page number", example: 1, default: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @ApiPropertyOptional({ description: "Items per page", example: 10, default: 10 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 10;
+
+
+  @ApiPropertyOptional({ description: "Sort by", example: "createdAt" })
+  @IsOptional()
+  @IsEnum(ArticleSortBy)
+  sortBy?: ArticleSortBy = ArticleSortBy.CREATED_AT;
+
+  @ApiPropertyOptional({ description: "Sort order", example: "asc" })
+  @IsOptional()
+  @IsEnum(SortOrder)
+  sortOrder?: SortOrder = SortOrder.ASC;
+
 }
 

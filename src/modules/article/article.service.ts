@@ -6,6 +6,9 @@ import { ArticleQueryDto } from "./dto/article-query.dto";
 import { UserService } from "../user/user.service";
 import { CategoryService } from "../category/category.service";
 import { InMemoryStore } from "../../common/store/in-memory.store";
+import { GetListQueryDto, PaginatedListDto } from "src/common/store/get-list.dto";
+import { SortOrder } from "src/common/types/sort.types";
+import { ArticleSortBy } from "./types/article.types";
 
 @Injectable()
 export class ArticleService {
@@ -18,15 +21,28 @@ export class ArticleService {
   ) {
   }
 
-  async getArticles(query?: ArticleQueryDto): Promise<Article[]> {
-    const { status, categoryId, tag } = query ?? {};
+  getArticles(query?: ArticleQueryDto): PaginatedListDto<Article> {
+    const q = query ?? ({} as ArticleQueryDto);
+    let list = [...this.store.articles];
 
-    return this.store.articles.filter((article) => {
-      if (status && article.status !== status) return false;
-      if (categoryId && article.categoryId !== categoryId) return false;
-      if (tag && !article.tags.includes(tag)) return false;
-      return true;
-    });
+    if (q.status !== undefined) {
+      list = list.filter((a) => a.status === q.status);
+    }
+    if (q.categoryId !== undefined && q.categoryId !== "") {
+      list = list.filter((a) => a.categoryId === q.categoryId);
+    }
+    if (q.tag !== undefined && q.tag !== "") {
+      list = list.filter((a) => a.tags.includes(q.tag));
+    }
+
+    const listQuery: GetListQueryDto<Article> = {
+      page: q.page,
+      limit: q.limit,
+      sortBy: (q.sortBy ?? ArticleSortBy.CREATED_AT) as keyof Article,
+      sortOrder: q.sortOrder ?? SortOrder.ASC,
+    };
+
+    return this.store.getFilteredAndSortedList(list, listQuery);
   }
 
   async getArticleById(id: string): Promise<Article> {

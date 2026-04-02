@@ -1,7 +1,8 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
-import { SortOrder, UserSortBy } from "../types/user.types";
+import { IsEnum, IsInt, IsOptional, Max, Min } from "class-validator";
+import { UserSortBy } from "../types/user.types";
+import { SortOrder } from "src/common/types/sort.types";
 
 export class GetUsersQueryDto {
   @ApiPropertyOptional({ description: "Page number", example: 1, default: 1 })

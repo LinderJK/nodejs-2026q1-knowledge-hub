@@ -24,6 +24,7 @@ import {
   ApiUpdateArticle,
 } from "./decorators/swagger.decorators";
 import { CreateArticlePipe } from "./pipes/create-article.pipe";
+import { PaginatedListDto } from "src/common/store/get-list.dto";
 
 @Controller("article")
 export class ArticleController {
@@ -31,7 +32,7 @@ export class ArticleController {
 
   @Get()
   @ApiGetArticles()
-  async getArticles(@Query() query: ArticleQueryDto): Promise<Article[]> {
+  async getArticles(@Query() query: ArticleQueryDto): Promise<PaginatedListDto<Article>> {
     return this.articleService.getArticles(query);
   }
 

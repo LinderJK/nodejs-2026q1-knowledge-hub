@@ -1,4 +1,4 @@
-import { SortOrder } from "src/modules/user/types/user.types";
+import { SortOrder } from "src/common/types/sort.types";
 
 export class GetListQueryDto<T> {
     page?: number;

@@ -2,7 +2,8 @@ import { applyDecorators } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from "@nestjs/swagger";
 import { CreateArticleDto } from "../dto/create-article.dto";
 import { UpdateArticleDto } from "../dto/update-article.dto";
-import { ArticleStatus } from "../types/article.types";
+import { ArticleSortBy, ArticleStatus } from "../types/article.types";
+import { SortOrder } from "src/common/types/sort.types";
 
 export const ApiGetArticles = () => {
   return applyDecorators(
@@ -10,6 +11,10 @@ export const ApiGetArticles = () => {
     ApiQuery({ name: "status", required: false, enum: ArticleStatus }),
     ApiQuery({ name: "categoryId", required: false, type: String }),
     ApiQuery({ name: "tag", required: false, type: String }),
+    ApiQuery({ name: "page", required: false, type: Number }),
+    ApiQuery({ name: "limit", required: false, type: Number }),
+    ApiQuery({ name: "sortBy", required: false, enum: ArticleSortBy }),
+    ApiQuery({ name: "sortOrder", required: false, enum: SortOrder }),
     ApiResponse({ status: 200, description: "Successful operation" })
   );
 };
