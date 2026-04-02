@@ -1,7 +1,6 @@
 import { applyDecorators } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from "@nestjs/swagger";
 import { CreateUserDto } from "../dto/create-user.dto";
-import { UserRole } from "../types/user.types";
 import { UpdatePasswordDto } from "../dto/update-password.dto";
 
 export const ApiGetUsers = () => {
@@ -35,6 +34,15 @@ export const ApiCreateUser = () => {
 //         ApiResponse({ status: 200, description: 'User updated' }),
 //     );
 // };
+export const GetUserByIdParams = () => {
+    return applyDecorators(
+        ApiOperation({ summary: 'Get user by id' }),
+        ApiParam({ name: 'id', type: String, description: 'User id', example: '123e4567-e89b-12d3-a456-426614174000' }),
+        ApiResponse({ status: 200, description: 'Successful operation' }),
+        ApiResponse({ status: 400, description: 'Bad request' }),
+        ApiResponse({ status: 404, description: 'Not found' }),
+    );
+};
 
 export const ApiUpdateUserPassword = () => {
     return applyDecorators(
@@ -44,5 +52,15 @@ export const ApiUpdateUserPassword = () => {
         ApiResponse({ status: 400, description: 'Bad request' }),
         ApiResponse({ status: 404, description: 'Not found' }),
         ApiResponse({ status: 403, description: 'Old password is incorrect' }),
+    );
+};
+
+
+export const ApiDeleteUser = () => {
+    return applyDecorators(
+        ApiOperation({ summary: 'Delete user' }),
+        ApiResponse({ status: 204, description: 'User deleted' }),
+        ApiResponse({ status: 400, description: 'Bad request' }),
+        ApiResponse({ status: 404, description: 'Not found' }),
     );
 };
