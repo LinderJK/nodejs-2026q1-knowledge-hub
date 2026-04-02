@@ -1,12 +1,12 @@
 {
-  "name": "knowledge-hub",
+  "name": "nodejs-2026q1-knowledge-hub",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "linderjk",
   "private": true,
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=22.14.0"
+    "node": ">=24.10.0"
   },
   "scripts": {
     "prebuild": "rimraf dist",
