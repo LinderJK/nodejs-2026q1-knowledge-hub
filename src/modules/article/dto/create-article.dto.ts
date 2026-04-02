@@ -32,9 +32,9 @@ export class CreateArticleDto {
     description: "Author id (uuid v4)",
     example: "f361871f-e3d2-48b3-bfba-15f3ae573c52",
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsUUID(4)
-  authorId: string;
+  authorId?: string | null;
 
   @ApiPropertyOptional({
     description: "Tags",

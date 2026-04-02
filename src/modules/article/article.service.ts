@@ -40,20 +40,14 @@ export class ArticleService {
   async createArticle(dto: CreateArticleDto): Promise<Article> {
     const now = Date.now();
     const author = await this.userService.getUserById(dto.authorId);
-    if (!author) {
-      throw new NotFoundException("Author not found, check if the user exists");
-    }
     const category = await this.categoryService.getCategoryById(dto.categoryId);
-    if (!category) {
-      throw new NotFoundException("Category not found, check if the category exists");
-    }
     const newArticle: Article = {
       id: crypto.randomUUID(),
       title: dto.title,
       content: dto.content,
       status: dto.status ?? ArticleStatus.DRAFT,
-      authorId: author.id,
-      categoryId: category.id,
+      authorId: author?.id ?? null,
+      categoryId: category?.id ?? null,
       tags: dto.tags ?? [],
       createdAt: now,
       updatedAt: now,
