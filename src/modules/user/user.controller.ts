@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { User } from "./types/user.types";
+import { ApiCreateUser, ApiGetUsers } from "./decorators/swagger.decorators";
+import { CreateUserDto } from "./dto/create-user.dto";
 
 
 
@@ -10,6 +12,7 @@ export class UserController {
     constructor(private readonly userService: UserService) {}
 
     @Get()
+    @ApiGetUsers()
     async getUsers(): Promise<User[]> {
         return this.userService.getUsers();
     }
@@ -20,7 +23,8 @@ export class UserController {
     }
 
     @Post()
-    async createUser(@Body() user: User): Promise<User> {
+    @ApiCreateUser()
+    async createUser(@Body() user: CreateUserDto): Promise<User> {
         return this.userService.createUser(user);
     }
 
