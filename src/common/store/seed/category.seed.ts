@@ -24,4 +24,8 @@ export const categoriesSeedData = [
         name: 'Category 6',
         description: 'Category 6 description',
     },
+    {
+        name: 'Category 7',
+        description: 'Category 7 description',
+    },
 ];

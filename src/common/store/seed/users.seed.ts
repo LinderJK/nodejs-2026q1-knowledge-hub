@@ -31,4 +31,9 @@ export const usersSeedData = [
         password: 'viewer4',
         role: UserRole.VIEWER,
     },
+    {
+        login: 'viewer5',
+        password: 'viewer5',
+        role: UserRole.VIEWER,
+    },
 ];

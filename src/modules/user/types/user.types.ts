@@ -23,7 +23,3 @@ export interface User {
     ROLE = 'role',
   }
 
-  export enum SortOrder {
-    ASC = 'asc',
-    DESC = 'desc',
-  }
