@@ -8,6 +8,7 @@ import { usersSeedData } from "./seed/users.seed";
 import { categoriesSeedData } from "./seed/category.seed";
 import { GetListQueryDto, PaginatedListDto } from "./get-list.dto";
 import { articlesSeedData } from "./seed/article.seed";
+import { commentsSeedData } from "./seed/comment.seed";
 
 @Injectable()
 export class InMemoryStore {
@@ -19,10 +20,11 @@ export class InMemoryStore {
   private readonly logger = new Logger(InMemoryStore.name);
 
   onModuleInit() {
-    this.seedUsers();
-    this.seedCategories();
-    this.seedArticles();
-    this.logger.debug('Seeded data');
+    // this.seedUsers();
+    // this.seedCategories();
+    // this.seedArticles();
+    // this.seedComments();
+    // this.logger.debug('Seeded data');
   }
 
 
@@ -53,6 +55,21 @@ export class InMemoryStore {
       id: crypto.randomUUID(),
       createdAt: Date.now() + index * 1000,
       updatedAt: Date.now() + index * 1000,
+    }));
+  }
+
+  private seedComments() {
+    if (this.articles.length === 0 || this.users.length === 0) {
+      this.comments = [];
+      return;
+    }
+
+    this.comments = commentsSeedData.map((seed, index) => ({
+      id: crypto.randomUUID(),
+      content: seed.content,
+      articleId: this.articles[index % this.articles.length].id,
+      authorId: this.users[Math.floor(Math.random() * this.users.length)].id,
+      createdAt: Date.now() + index * 1000,
     }));
   }
 

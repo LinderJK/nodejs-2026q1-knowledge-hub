@@ -4,3 +4,7 @@ export interface Category {
   description: string;
 }
 
+
+export enum CategorySortBy {
+  NAME = 'name',
+}

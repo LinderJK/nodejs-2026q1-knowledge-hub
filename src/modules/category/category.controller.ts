@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
 } from "@nestjs/common";
 import { CategoryService } from "./category.service";
 import { Category } from "./types/category.types";
@@ -16,6 +17,8 @@ import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
 import { ApiCreateCategory, ApiDeleteCategory, ApiGetCategories, ApiGetCategoryById, ApiUpdateCategory } from "./decorators/swagger.decorators";
 import { CreateCategoryPipe } from "./pipes/create-category.pipe";
+import { CategoryQueryDto } from "./dto/category-query.dto";
+import { PaginatedListDto } from "src/common/store/get-list.dto";
 
 
 @Controller("category")
@@ -24,8 +27,8 @@ export class CategoryController {
 
   @Get()
   @ApiGetCategories()
-  async getCategories(): Promise<Category[]> {
-    return this.categoryService.getCategories();
+  async getCategories(@Query() query: CategoryQueryDto): Promise<PaginatedListDto<Category>> {
+    return this.categoryService.getCategories(query);
   }
 
   @Get(":id")

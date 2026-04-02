@@ -6,3 +6,6 @@ export interface Comment {
   createdAt: number; // timestamp of creation
 }
 
+export enum CommentSortBy {
+  CREATED_AT = 'createdAt',
+}

@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { Category } from "./types/category.types";
+import { Category, CategorySortBy } from "./types/category.types";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
 import { InMemoryStore } from "../../common/store/in-memory.store";
+import { CategoryQueryDto } from "./dto/category-query.dto";
+import { GetListQueryDto, PaginatedListDto } from "src/common/store/get-list.dto";
+import { SortOrder } from "src/common/types/sort.types";
 
 @Injectable()
 export class CategoryService {
@@ -10,8 +13,14 @@ export class CategoryService {
   constructor(private readonly store: InMemoryStore) {
   }
 
-  async getCategories(): Promise<Category[]> {
-    return this.store.categories;
+  getCategories(query: CategoryQueryDto): PaginatedListDto<Category> {
+    const listQuery: GetListQueryDto<Category> = {
+      page: query.page,
+      limit: query.limit,
+      sortBy: (query.sortBy ?? CategorySortBy.NAME) as unknown as keyof Category,
+      sortOrder: query.sortOrder ?? SortOrder.ASC,
+    };
+    return this.store.getFilteredAndSortedList(this.store.categories, listQuery);
   }
 
   async getCategoryById(id: string): Promise<Category> {

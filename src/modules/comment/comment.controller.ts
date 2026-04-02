@@ -16,6 +16,7 @@ import { GetCommentsQueryDto } from "./dto/get-comments-query.dto";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { ApiCreateComment, ApiDeleteComment, ApiGetComments } from "./decorators/swagger.decorators";
 import { CommentCreatePipe } from "./pipe/comment-create.pipe";
+import { PaginatedListDto } from "src/common/store/get-list.dto";
 
 @Controller("comment")
 export class CommentController {
@@ -23,7 +24,7 @@ export class CommentController {
 
   @Get()
   @ApiGetComments()
-  async getComments(@Query() query: GetCommentsQueryDto): Promise<Comment[]> {
+  async getComments(@Query() query: GetCommentsQueryDto): Promise<PaginatedListDto<Comment>> {
     return this.commentService.getComments(query);
   }
 
