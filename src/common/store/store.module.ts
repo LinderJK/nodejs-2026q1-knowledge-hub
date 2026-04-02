@@ -5,6 +5,7 @@ import { InMemoryStore } from "./in-memory.store";
 @Module({
   providers: [InMemoryStore],
   exports: [InMemoryStore],
+  
 })
 export class StoreModule {}
 
