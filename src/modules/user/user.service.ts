@@ -59,6 +59,13 @@ export class UserService {
             throw new NotFoundException('User not found');
         }
         this.store.users.splice(userIndex, 1);
+
+        // delete user from all articles
+        for (const article of this.store.articles) {
+            if (article.authorId === id) article.authorId = null;
+        }
+        // delete comments by this user
+        this.store.comments = this.store.comments.filter((c) => c.authorId !== id);
     }
 
     async getUsers(): Promise<PublicUser[]> {

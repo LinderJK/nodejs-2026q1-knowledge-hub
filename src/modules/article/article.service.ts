@@ -5,7 +5,7 @@ import { UpdateArticleDto } from "./dto/update-article.dto";
 import { ArticleQueryDto } from "./dto/article-query.dto";
 import { UserService } from "../user/user.service";
 import { CategoryService } from "../category/category.service";
-import { InMemoryStore } from "src/common/store/in-memory.store";
+import { InMemoryStore } from "../../common/store/in-memory.store";
 
 @Injectable()
 export class ArticleService {
@@ -80,6 +80,9 @@ export class ArticleService {
       throw new NotFoundException("Article not found");
     }
     this.store.articles.splice(idx, 1);
+
+    // delete comments by this article
+    this.store.comments = this.store.comments.filter((c) => c.articleId !== id);
   }
 }
 

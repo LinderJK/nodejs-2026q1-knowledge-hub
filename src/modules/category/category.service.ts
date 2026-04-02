@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Category } from "./types/category.types";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
-import { InMemoryStore } from "src/common/store/in-memory.store";
+import { InMemoryStore } from "../../common/store/in-memory.store";
 
 @Injectable()
 export class CategoryService {
@@ -50,6 +50,11 @@ export class CategoryService {
       throw new NotFoundException("Category not found");
     }
     this.store.categories.splice(idx, 1);
+
+    // delete category from all articles
+    for (const article of this.store.articles) {
+      if (article.categoryId === id) article.categoryId = null;
+    }
   }
 }
 
