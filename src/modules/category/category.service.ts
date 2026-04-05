@@ -4,17 +4,14 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InMemoryStore } from '../../common/store/in-memory.store';
 import { CategoryQueryDto } from './dto/category-query.dto';
-import {
-  GetListQueryDto,
-  PaginatedListDto,
-} from 'src/common/store/get-list.dto';
+import { GetListQueryDto } from 'src/common/store/get-list.dto';
 import { SortOrder } from 'src/common/types/sort.types';
 
 @Injectable()
 export class CategoryService {
   constructor(private readonly store: InMemoryStore) {}
 
-  getCategories(query: CategoryQueryDto): PaginatedListDto<Category> {
+  getCategories(query: CategoryQueryDto): Category[] {
     const listQuery: GetListQueryDto<Category> = {
       page: query.page,
       limit: query.limit,
@@ -22,7 +19,7 @@ export class CategoryService {
         CategorySortBy.NAME) as unknown as keyof Category,
       sortOrder: query.sortOrder ?? SortOrder.ASC,
     };
-    return this.store.getFilteredAndSortedList(
+    return this.store.getFilteredAndSortedItems(
       this.store.categories,
       listQuery,
     );

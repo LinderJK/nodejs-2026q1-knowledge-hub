@@ -93,22 +93,28 @@ export class InMemoryStore {
     return order === SortOrder.DESC ? -result : result;
   }
 
-  getFilteredAndSortedList<T>(
+  getFilteredAndSortedItems<T>(
     list: T[],
     query: GetListQueryDto<T>,
-  ): PaginatedListDto<T> {
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
+  ): T[] {
     const sortOrder = query.sortOrder ?? SortOrder.ASC;
     const sortBy = query.sortBy;
-
     const working = [...list];
     if (sortBy !== undefined && sortBy !== null) {
       working.sort((a, b) =>
         this.compareByField<T>(a, b, sortBy as keyof T, sortOrder),
       );
     }
+    return working;
+  }
 
+  getFilteredAndSortedList<T>(
+    list: T[],
+    query: GetListQueryDto<T>,
+  ): PaginatedListDto<T> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const working = this.getFilteredAndSortedItems(list, query);
     return this.paginate<T>(working, page, limit);
   }
 

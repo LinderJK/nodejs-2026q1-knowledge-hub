@@ -24,17 +24,13 @@ import {
 } from './decorators/swagger.decorators';
 import { CreateCategoryPipe } from './pipes/create-category.pipe';
 import { CategoryQueryDto } from './dto/category-query.dto';
-import { PaginatedListDto } from 'src/common/store/get-list.dto';
-
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Get()
   @ApiGetCategories()
-  async getCategories(
-    @Query() query: CategoryQueryDto,
-  ): Promise<PaginatedListDto<Category>> {
+  async getCategories(@Query() query: CategoryQueryDto): Promise<Category[]> {
     return this.categoryService.getCategories(query);
   }
 

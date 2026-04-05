@@ -23,15 +23,13 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
-import { PaginatedUsersDto } from './dto/paginated-users.dto';
-
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
   @ApiGetUsers()
-  async getUsers(@Query() query: GetUsersQueryDto): Promise<PaginatedUsersDto> {
+  async getUsers(@Query() query: GetUsersQueryDto): Promise<PublicUser[]> {
     return this.userService.getUsers(query);
   }
 

@@ -4,10 +4,7 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleQueryDto } from './dto/article-query.dto';
 import { InMemoryStore } from '../../common/store/in-memory.store';
-import {
-  GetListQueryDto,
-  PaginatedListDto,
-} from 'src/common/store/get-list.dto';
+import { GetListQueryDto } from 'src/common/store/get-list.dto';
 import { SortOrder } from 'src/common/types/sort.types';
 import { ArticleSortBy } from './types/article.types';
 
@@ -15,7 +12,7 @@ import { ArticleSortBy } from './types/article.types';
 export class ArticleService {
   constructor(private readonly store: InMemoryStore) {}
 
-  getArticles(query?: ArticleQueryDto): PaginatedListDto<Article> {
+  getArticles(query?: ArticleQueryDto): Article[] {
     const q = query ?? ({} as ArticleQueryDto);
     let list = [...this.store.articles];
 
@@ -36,7 +33,7 @@ export class ArticleService {
       sortOrder: q.sortOrder ?? SortOrder.ASC,
     };
 
-    return this.store.getFilteredAndSortedList(list, listQuery);
+    return this.store.getFilteredAndSortedItems(list, listQuery);
   }
 
   async getArticleById(id: string): Promise<Article> {

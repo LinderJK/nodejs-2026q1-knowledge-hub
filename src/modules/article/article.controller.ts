@@ -24,17 +24,13 @@ import {
   ApiUpdateArticle,
 } from './decorators/swagger.decorators';
 import { CreateArticlePipe } from './pipes/create-article.pipe';
-import { PaginatedListDto } from 'src/common/store/get-list.dto';
-
 @Controller('article')
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
   @Get()
   @ApiGetArticles()
-  async getArticles(
-    @Query() query: ArticleQueryDto,
-  ): Promise<PaginatedListDto<Article>> {
+  async getArticles(@Query() query: ArticleQueryDto): Promise<Article[]> {
     return this.articleService.getArticles(query);
   }
 
