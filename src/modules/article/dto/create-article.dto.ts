@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArticleStatus } from '../types/article.types';
+import { ArticleStatus } from 'generated/prisma/enums';
 import {
   IsArray,
   IsEnum,
