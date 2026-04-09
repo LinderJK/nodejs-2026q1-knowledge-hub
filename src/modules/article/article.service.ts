@@ -1,110 +1,92 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Article, ArticleStatus } from './types/article.types';
+import { Article } from './types/article.types';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleQueryDto } from './dto/article-query.dto';
-import { InMemoryStore } from '../../common/store/in-memory.store';
-import { GetListQueryDto } from 'src/common/store/get-list.dto';
-import { SortOrder } from 'src/common/types/sort.types';
-import { ArticleSortBy } from './types/article.types';
+import { PrismaService } from 'src/integrations/prisma.service';
+import { ArticleStatus } from 'generated/prisma/enums';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class ArticleService {
-  constructor(private readonly store: InMemoryStore) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  getArticles(query?: ArticleQueryDto): Article[] {
-    const q = query ?? ({} as ArticleQueryDto);
-    let list = [...this.store.articles];
-
-    if (q.status !== undefined) {
-      list = list.filter((a) => a.status === q.status);
-    }
-    if (q.categoryId !== undefined && q.categoryId !== '') {
-      list = list.filter((a) => a.categoryId === q.categoryId);
-    }
-    if (q.tag !== undefined && q.tag !== '') {
-      list = list.filter((a) => a.tags.includes(q.tag));
-    }
-
-    const listQuery: GetListQueryDto<Article> = {
-      page: q.page,
-      limit: q.limit,
-      sortBy: (q.sortBy ?? ArticleSortBy.CREATED_AT) as keyof Article,
-      sortOrder: q.sortOrder ?? SortOrder.ASC,
-    };
-
-    return this.store.getFilteredAndSortedItems(list, listQuery);
+  async getArticles(query?: ArticleQueryDto): Promise<Article[]> {
+    const q = query ?? {};
+    return this.prisma.article.findMany({
+      where: {
+        status: q.status ?? undefined,
+        categoryId: q.categoryId || undefined,
+        tags: q.tag ? { some: { tag: { name: q.tag } } } : undefined,
+      },
+      orderBy: {
+        [q.sortBy ?? 'createdAt']: q.sortOrder ?? 'asc',
+      },
+      skip: ((q.page ?? 1) - 1) * (q.limit ?? 10),
+      take: q.limit ?? 10,
+    });
   }
 
   async getArticleById(id: string): Promise<Article> {
-    const article = this.store.articles.find((a) => a.id === id);
+    const article = await this.prisma.article.findUnique({
+      where: { id },
+    });
     if (!article) {
       throw new NotFoundException('Article not found');
     }
     return article;
   }
 
-  createArticle(dto: CreateArticleDto): Article {
-    const now = Date.now();
-    let authorId: string | null = dto.authorId ?? null;
-    let categoryId: string | null = dto.categoryId ?? null;
-
-    // if (dto.authorId != null && dto.authorId !== '') {
-    //   const user = this.store.users.find((u) => u.id === dto.authorId);
-    //   if (!user) {
-    //     throw new NotFoundException('User not found');
-    //   }
-    //   authorId = user.id;
-    // }
-    // if (dto.categoryId != null && dto.categoryId !== '') {
-    //   const category = this.store.categories.find((c) => c.id === dto.categoryId);
-    //   if (!category) {
-    //     throw new NotFoundException('Category not found');
-    //   }
-    //   categoryId = category.id;
-    // }
-
-    const newArticle: Article = {
-      id: crypto.randomUUID(),
-      title: dto.title,
-      content: dto.content,
-      status: dto.status ?? ArticleStatus.DRAFT,
-      authorId,
-      categoryId,
-      tags: dto.tags ?? [],
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    this.store.articles.push(newArticle);
-    return newArticle;
+  async createArticle(dto: CreateArticleDto): Promise<Article> {
+    return this.prisma.article.create({
+      data: {
+        title: dto.title,
+        content: dto.content,
+        status: dto.status ?? ArticleStatus.DRAFT,
+        authorId: dto.authorId ?? null,
+        categoryId: dto.categoryId ?? null,
+        ...this.tagsUpdate(dto.tags),
+      },
+    });
   }
 
   async updateArticle(id: string, dto: UpdateArticleDto): Promise<Article> {
-    const idx = this.store.articles.findIndex((a) => a.id === id);
-    if (idx === -1) {
-      throw new NotFoundException('Article not found');
-    }
+    const found = await this.prisma.article.findUnique({ where: { id } });
+    if (!found) throw new NotFoundException('Article not found');
+    return this.prisma.article.update({
+      where: { id },
+      data: {
+        title: dto.title,
+        content: dto.content,
+        status: dto.status ?? undefined,
+        ...this.relationUpdate(dto),
+        ...this.tagsUpdate(dto.tags),
+      },
+    });
+  }
 
-    const current = this.store.articles[idx];
-    const updated: Article = {
-      ...current,
-      ...dto,
-      updatedAt: Date.now(),
+  private relationUpdate(dto: UpdateArticleDto) {
+    return {
+      title: dto.title,
+      content: dto.content,
+      status: dto.status ?? undefined,
+      author: dto.authorId === undefined ? undefined : dto.authorId === null ? { disconnect: true } : { connect: { id: dto.authorId } },
     };
+  }
 
-    this.store.articles[idx] = updated;
-    return updated;
+  private tagsUpdate(
+    tags: string[],
+  ) {
+    return tags.map((name) => ({
+      tag: {
+        connectOrCreate: { where: { name }, create: { name } },
+      },
+    }));
   }
 
   async deleteArticle(id: string): Promise<void> {
-    const idx = this.store.articles.findIndex((a) => a.id === id);
-    if (idx === -1) {
-      throw new NotFoundException('Article not found');
-    }
-    this.store.articles.splice(idx, 1);
-
-    // delete comments by this article
-    this.store.comments = this.store.comments.filter((c) => c.articleId !== id);
+    const found = await this.prisma.article.findUnique({ where: { id } });
+    if (!found) throw new NotFoundException('Article not found');
+    await this.prisma.article.delete({ where: { id } });
   }
 }
