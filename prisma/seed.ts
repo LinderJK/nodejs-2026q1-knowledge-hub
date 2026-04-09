@@ -70,7 +70,10 @@ async function main() {
         authorId: admin.id,
         categoryId: backend.id,
         tags: {
-          connect: [{ id: tNest.id }, { id: tTs.id }],
+          create: [
+            { tag: { connect: { id: tNest.id } } },
+            { tag: { connect: { id: tTs.id } } },
+          ],
         },
       },
     }),
@@ -82,7 +85,10 @@ async function main() {
         authorId: admin.id,
         categoryId: backend.id,
         tags: {
-          connect: [{ id: tPg.id }, { id: tTesting.id }],
+          create: [
+            { tag: { connect: { id: tPg.id } } },
+            { tag: { connect: { id: tTesting.id } } },
+          ],
         },
       },
     }),
@@ -94,7 +100,7 @@ async function main() {
         authorId: editor.id,
         categoryId: frontend.id,
         tags: {
-          connect: [{ id: tTs.id }],
+          create: [{ tag: { connect: { id: tTs.id } } }],
         },
       },
     }),
@@ -106,7 +112,10 @@ async function main() {
         authorId: editor.id,
         categoryId: devops.id,
         tags: {
-          connect: [{ id: tDocker.id }, { id: tNest.id }],
+          create: [
+            { tag: { connect: { id: tDocker.id } } },
+            { tag: { connect: { id: tNest.id } } },
+          ],
         },
       },
     }),
@@ -118,7 +127,10 @@ async function main() {
         authorId: admin.id,
         categoryId: backend.id,
         tags: {
-          connect: [{ id: tTesting.id }, { id: tTs.id }],
+          create: [
+            { tag: { connect: { id: tTesting.id } } },
+            { tag: { connect: { id: tTs.id } } },
+          ],
         },
       },
     }),
