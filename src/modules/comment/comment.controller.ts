@@ -28,7 +28,7 @@ export class CommentController {
 
   @Get()
   @ApiGetComments()
-  getComments(@Query() query: GetCommentsQueryDto): Comment[] {
+  getComments(@Query() query: GetCommentsQueryDto): Promise<Comment[]> {
     return this.commentService.getComments(query);
   }
 
