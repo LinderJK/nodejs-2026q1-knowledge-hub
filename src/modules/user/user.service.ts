@@ -40,14 +40,6 @@ export class UserService {
     return user;
   }
 
-  async updateUser(id: string, user: PublicUser): Promise<PublicUser> {
-    return await this.prisma.user.update({
-      where: { id },
-      data: user,
-      select: this.publicUserSelect,
-    });
-  }
-
   async updateUserPassword(
     id: string,
     oldPassword: string,
@@ -62,7 +54,7 @@ export class UserService {
     if (user.password !== oldPassword) {
       throw new ForbiddenException('Old password is incorrect');
     }
-    return await this.prisma.user.update({
+    return this.prisma.user.update({
       where: { id },
       data: { password: newPassword },
       select: this.publicUserSelect,
@@ -82,12 +74,16 @@ export class UserService {
   }
 
   getUsers(query: GetUsersQueryDto): Promise<PublicUser[]> {
+    const sortBy = query.sortBy ?? 'createdAt';
+    const sortOrder = query.sortOrder ?? 'asc';
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
     return this.prisma.user.findMany({
-      skip: (query.page - 1) * query.limit,
-      take: query.limit,
-      orderBy: {
-        createdAt: query.sortOrder === 'asc' ? 'asc' : 'desc',
-      },
+      select: this.publicUserSelect,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { [sortBy]: sortOrder },
     });
   }
 }
