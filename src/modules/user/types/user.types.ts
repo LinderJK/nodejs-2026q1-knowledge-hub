@@ -1,7 +1,16 @@
-import { User } from 'generated/prisma/client';
-export { UserRole } from 'generated/prisma/enums';
+export enum UserRole {
+  ADMIN = 'admin',
+  EDITOR = 'editor',
+  VIEWER = 'viewer',
+}
 
-export type PublicUser = Omit<User, 'password'>;
+export interface PublicUser {
+  id: string;
+  login: string;
+  role: UserRole;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export enum UserSortBy {
   CREATED_AT = 'createdAt',
