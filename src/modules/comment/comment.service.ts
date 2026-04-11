@@ -14,7 +14,8 @@ export class CommentService {
 
   getComments(query: GetCommentsQueryDto): Promise<Comment[]> {
     const q = query ?? ({} as GetCommentsQueryDto);
-    return this.prisma.comment.findMany({
+    return this.prisma.comment
+      .findMany({
       where: {
         articleId: q.articleId,
       },
@@ -23,7 +24,8 @@ export class CommentService {
       },
       skip: ((q.page ?? 1) - 1) * (q.limit ?? 10),
       take: q.limit ?? 10,
-    });
+      })
+      .then((comments) => comments.map((comment) => this.toApiComment(comment)));
   }
 
   async getCommentById(id: string): Promise<Comment> {
@@ -33,7 +35,7 @@ export class CommentService {
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
-    return comment;
+    return this.toApiComment(comment);
   }
 
   async createComment(dto: CreateCommentDto): Promise<Comment> {
@@ -46,13 +48,14 @@ export class CommentService {
         'Article not found, check if the article exists',
       );
     }
-    return this.prisma.comment.create({
+    const comment = await this.prisma.comment.create({
       data: {
         content: dto.content,
         articleId: article.id,
         authorId: dto.authorId ?? null,
       },
     });
+    return this.toApiComment(comment);
   }
 
   async deleteComment(id: string): Promise<void> {
@@ -64,5 +67,21 @@ export class CommentService {
       throw new NotFoundException('Comment not found');
     }
     await this.prisma.comment.delete({ where: { id } });
+  }
+
+  private toApiComment(comment: {
+    id: string;
+    content: string;
+    articleId: string;
+    authorId: string | null;
+    createdAt: Date;
+  }): Comment {
+    return {
+      id: comment.id,
+      content: comment.content,
+      articleId: comment.articleId,
+      authorId: comment.authorId,
+      createdAt: comment.createdAt.getTime(),
+    };
   }
 }
