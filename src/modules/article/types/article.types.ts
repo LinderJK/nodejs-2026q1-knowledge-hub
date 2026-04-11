@@ -1,7 +1,20 @@
-import { Article as PrismaArticle } from 'generated/prisma/client';
-export { ArticleStatus } from 'generated/prisma/enums';
+export enum ArticleStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+  ARCHIVED = 'archived',
+}
 
-export type Article = PrismaArticle;
+export interface Article {
+  id: string;
+  title: string;
+  content: string;
+  status: ArticleStatus;
+  authorId: string | null;
+  categoryId: string | null;
+  tags: string[];
+  createdAt: number;
+  updatedAt: number;
+}
 
 export enum ArticleSortBy {
   CREATED_AT = 'createdAt',

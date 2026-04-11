@@ -3,7 +3,7 @@ import { ArticleSortBy } from '../types/article.types';
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SortOrder } from 'src/common/types/sort.types';
-import { ArticleStatus } from 'generated/prisma/enums';
+import { ArticleStatus } from '../types/article.types';
 
 export class ArticleQueryDto {
   @ApiPropertyOptional({
