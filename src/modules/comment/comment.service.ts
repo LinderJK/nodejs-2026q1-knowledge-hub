@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -6,68 +7,88 @@ import {
 import { Comment, CommentSortBy } from './types/comment.types';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetCommentsQueryDto } from './dto/get-comments-query.dto';
-import { InMemoryStore } from 'src/common/store/in-memory.store';
-import { GetListQueryDto } from 'src/common/store/get-list.dto';
-import { SortOrder } from 'src/common/types/sort.types';
+import { PrismaService } from 'src/integrations/prisma.service';
+import { AuthUser } from '../user/types/auth.types';
+import { UserRole } from '../user/types/user.types';
 
 @Injectable()
 export class CommentService {
-  constructor(
-    private readonly store: InMemoryStore,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  getComments(query: GetCommentsQueryDto): Comment[] {
+  getComments(query: GetCommentsQueryDto): Promise<Comment[]> {
     const q = query ?? ({} as GetCommentsQueryDto);
-    let list = [...this.store.comments];
-
-    if (q.articleId !== undefined && q.articleId !== '') {
-      list = list.filter((c) => c.articleId === q.articleId);
-    }
-    const listQuery: GetListQueryDto<Comment> = {
-      page: q.page,
-      limit: q.limit,
-      sortBy: (q.sortBy ??
-        CommentSortBy.CREATED_AT) as unknown as keyof Comment,
-      sortOrder: q.sortOrder ?? SortOrder.ASC,
-    };
-    return this.store.getFilteredAndSortedList(list, listQuery).data;
+    return this.prisma.comment
+      .findMany({
+      where: {
+        articleId: q.articleId,
+      },
+      orderBy: {
+        [q.sortBy ?? CommentSortBy.CREATED_AT]: q.sortOrder ?? 'asc',
+      },
+      skip: ((q.page ?? 1) - 1) * (q.limit ?? 10),
+      take: q.limit ?? 10,
+      })
+      .then((comments) => comments.map((comment) => this.toApiComment(comment)));
   }
 
   async getCommentById(id: string): Promise<Comment> {
-    const comment = this.store.comments.find((c) => c.id === id);
+    const comment = await this.prisma.comment.findUnique({
+      where: { id },
+    });
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
-    return comment;
+    return this.toApiComment(comment);
   }
 
-  async createComment(dto: CreateCommentDto): Promise<Comment> {
-    const article = this.store.articles.find((a) => a.id === dto.articleId);
+  async createComment(dto: CreateCommentDto, actor: AuthUser): Promise<Comment> {
+    const article = await this.prisma.article.findUnique({
+      where: { id: dto.articleId },
+      select: { id: true },
+    });
     if (!article) {
       throw new UnprocessableEntityException(
         'Article not found, check if the article exists',
       );
     }
-    // const author = await this.userService.getUserById(dto.authorId);
-    const authorId = dto.authorId ?? null;
-
-    const newComment: Comment = {
-      id: crypto.randomUUID(),
-      content: dto.content,
-      articleId: article.id,
-      authorId: authorId,
-      createdAt: Date.now(),
-    };
-
-    this.store.comments.push(newComment);
-    return newComment;
+    const comment = await this.prisma.comment.create({
+      data: {
+        content: dto.content,
+        articleId: article.id,
+        authorId:
+          actor.role === UserRole.ADMIN ? dto.authorId ?? null : actor.userId,
+      },
+    });
+    return this.toApiComment(comment);
   }
 
-  async deleteComment(id: string): Promise<void> {
-    const idx = this.store.comments.findIndex((c) => c.id === id);
-    if (idx === -1) {
+  async deleteComment(id: string, actor: AuthUser): Promise<void> {
+    const found = await this.prisma.comment.findUnique({
+      where: { id },
+      select: { id: true, authorId: true },
+    });
+    if (!found) {
       throw new NotFoundException('Comment not found');
     }
-    this.store.comments.splice(idx, 1);
+    if (actor.role !== UserRole.ADMIN && found.authorId !== actor.userId) {
+      throw new ForbiddenException('You can delete only your own comments');
+    }
+    await this.prisma.comment.delete({ where: { id } });
+  }
+
+  private toApiComment(comment: {
+    id: string;
+    content: string;
+    articleId: string;
+    authorId: string | null;
+    createdAt: Date;
+  }): Comment {
+    return {
+      id: comment.id,
+      content: comment.content,
+      articleId: comment.articleId,
+      authorId: comment.authorId,
+      createdAt: comment.createdAt.getTime(),
+    };
   }
 }

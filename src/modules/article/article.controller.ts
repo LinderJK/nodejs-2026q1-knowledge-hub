@@ -24,6 +24,10 @@ import {
   ApiUpdateArticle,
 } from './decorators/swagger.decorators';
 import { CreateArticlePipe } from './pipes/create-article.pipe';
+import { Roles } from '../user/decorators/roles.decorator';
+import { UserRole } from '../user/types/user.types';
+import { CurrentUser } from '../user/decorators/current-user.decorator';
+import { AuthUser } from '../user/types/auth.types';
 @Controller('article')
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
@@ -43,29 +47,35 @@ export class ArticleController {
   }
 
   @Post()
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateArticle()
   async createArticle(
+    @CurrentUser() actor: AuthUser,
     @Body(CreateArticlePipe) dto: CreateArticleDto,
   ): Promise<Article> {
-    return this.articleService.createArticle(dto);
+    return this.articleService.createArticle(dto, actor);
   }
 
   @Put(':id')
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiUpdateArticle()
   async updateArticle(
+    @CurrentUser() actor: AuthUser,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() dto: UpdateArticleDto,
   ): Promise<Article> {
-    return this.articleService.updateArticle(id, dto);
+    return this.articleService.updateArticle(id, dto, actor);
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiDeleteArticle()
   async deleteArticle(
+    @CurrentUser() actor: AuthUser,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<void> {
-    return this.articleService.deleteArticle(id);
+    return this.articleService.deleteArticle(id, actor);
   }
 }
