@@ -1,5 +1,6 @@
 import { ArticleStatus, PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as bcrypt from 'bcrypt';
 
 const adapter = new PrismaPg({
   connectionString: process.env.POSTGRES_URL,
@@ -8,6 +9,11 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  const [adminPassword, editorPassword] = await Promise.all([
+    bcrypt.hash('admin123', 10),
+    bcrypt.hash('editor123', 10),
+  ]);
+
   await prisma.comment.deleteMany();
   await prisma.article.deleteMany();
   await prisma.tag.deleteMany();
@@ -17,16 +23,16 @@ async function main() {
   const admin = await prisma.user.create({
     data: {
       login: 'admin',
-      password: 'admin123',
-      role: 'ADMIN',
+      password: adminPassword,
+      role: 'admin',
     },
   });
 
   const editor = await prisma.user.create({
     data: {
       login: 'editor',
-      password: 'editor123',
-      role: 'EDITOR',
+      password: editorPassword,
+      role: 'editor',
     },
   });
 

@@ -1,8 +1,9 @@
 model User {
   id         String    @id @default(uuid())
-  login      String
+  login      String    @unique
   password   String
-  role       UserRole  @default(VIEWER)
+  refreshTokenHash String?
+  role       UserRole  @default(viewer)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
@@ -11,7 +12,7 @@ model User {
 }
 
 enum UserRole {
-  ADMIN 
-  EDITOR
-  VIEWER
+  admin
+  editor
+  viewer
 }
