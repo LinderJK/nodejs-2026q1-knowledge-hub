@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -7,6 +8,8 @@ import { Comment, CommentSortBy } from './types/comment.types';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetCommentsQueryDto } from './dto/get-comments-query.dto';
 import { PrismaService } from 'src/integrations/prisma.service';
+import { AuthUser } from '../user/types/auth.types';
+import { UserRole } from '../user/types/user.types';
 
 @Injectable()
 export class CommentService {
@@ -38,7 +41,7 @@ export class CommentService {
     return this.toApiComment(comment);
   }
 
-  async createComment(dto: CreateCommentDto): Promise<Comment> {
+  async createComment(dto: CreateCommentDto, actor: AuthUser): Promise<Comment> {
     const article = await this.prisma.article.findUnique({
       where: { id: dto.articleId },
       select: { id: true },
@@ -52,19 +55,23 @@ export class CommentService {
       data: {
         content: dto.content,
         articleId: article.id,
-        authorId: dto.authorId ?? null,
+        authorId:
+          actor.role === UserRole.ADMIN ? dto.authorId ?? null : actor.userId,
       },
     });
     return this.toApiComment(comment);
   }
 
-  async deleteComment(id: string): Promise<void> {
+  async deleteComment(id: string, actor: AuthUser): Promise<void> {
     const found = await this.prisma.comment.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, authorId: true },
     });
     if (!found) {
       throw new NotFoundException('Comment not found');
+    }
+    if (actor.role !== UserRole.ADMIN && found.authorId !== actor.userId) {
+      throw new ForbiddenException('You can delete only your own comments');
     }
     await this.prisma.comment.delete({ where: { id } });
   }

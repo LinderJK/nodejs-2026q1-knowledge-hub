@@ -24,6 +24,8 @@ import {
 } from './decorators/swagger.decorators';
 import { CreateCategoryPipe } from './pipes/create-category.pipe';
 import { CategoryQueryDto } from './dto/category-query.dto';
+import { Roles } from '../user/decorators/roles.decorator';
+import { UserRole } from '../user/types/user.types';
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
@@ -43,6 +45,7 @@ export class CategoryController {
   }
 
   @Post()
+  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateCategory()
   async createCategory(
@@ -52,6 +55,7 @@ export class CategoryController {
   }
 
   @Put(':id')
+  @Roles(UserRole.ADMIN)
   @ApiUpdateCategory()
   async updateCategory(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -61,6 +65,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiDeleteCategory()
   async deleteCategory(
