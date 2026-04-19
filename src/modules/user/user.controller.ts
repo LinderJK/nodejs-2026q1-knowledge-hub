@@ -23,6 +23,11 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
+import { UserRole } from './types/user.types';
+import { Roles } from './decorators/roles.decorator';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { AuthUser } from './types/auth.types';
+
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -37,11 +42,13 @@ export class UserController {
   @GetUserByIdParams()
   async getUserById(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @CurrentUser() actor: AuthUser,
   ): Promise<PublicUser> {
-    return this.userService.getUserById(id);
+    return this.userService.getUserById(id, actor);
   }
 
-  @Post()
+  @Post('/')
+  @Roles(UserRole.ADMIN)
   @ApiCreateUser()
   async createUser(@Body() user: CreateUserDto): Promise<PublicUser> {
     return this.userService.createUser(user);
@@ -60,15 +67,18 @@ export class UserController {
   async updateUserPassword(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updatePasswordDto: UpdatePasswordDto,
+    @CurrentUser() actor: AuthUser,
   ): Promise<PublicUser> {
     return this.userService.updateUserPassword(
       id,
       updatePasswordDto.oldPassword,
       updatePasswordDto.newPassword,
+      actor,
     );
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiDeleteUser()
   async deleteUser(
