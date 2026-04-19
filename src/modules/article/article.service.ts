@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Article } from './types/article.types';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
@@ -6,6 +6,8 @@ import { ArticleQueryDto } from './dto/article-query.dto';
 import { PrismaService } from 'src/integrations/prisma.service';
 import { ArticleStatus as PrismaArticleStatus } from 'generated/prisma/enums';
 import { ArticleStatus } from './types/article.types';
+import { AuthUser } from '../user/types/auth.types';
+import { UserRole } from '../user/types/user.types';
 
 @Injectable()
 export class ArticleService {
@@ -44,13 +46,16 @@ export class ArticleService {
     return this.toApiArticle(article);
   }
 
-  async createArticle(dto: CreateArticleDto): Promise<Article> {
+  async createArticle(dto: CreateArticleDto, actor: AuthUser): Promise<Article> {
+    const authorId =
+      actor.role === UserRole.ADMIN ? dto.authorId ?? null : actor.userId;
+
     const article = await this.prisma.article.create({
       data: {
         title: dto.title,
         content: dto.content,
         status: this.toPrismaStatus(dto.status ?? ArticleStatus.DRAFT),
-        authorId: dto.authorId ?? null,
+        authorId,
         categoryId: dto.categoryId ?? null,
         tags: this.tagsCreate(dto.tags),
       },
@@ -61,9 +66,18 @@ export class ArticleService {
     return this.toApiArticle(article);
   }
 
-  async updateArticle(id: string, dto: UpdateArticleDto): Promise<Article> {
+  async updateArticle(
+    id: string,
+    dto: UpdateArticleDto,
+    actor: AuthUser,
+  ): Promise<Article> {
     const found = await this.prisma.article.findUnique({ where: { id } });
     if (!found) throw new NotFoundException('Article not found');
+
+    if (actor.role !== UserRole.ADMIN && found.authorId !== actor.userId) {
+      throw new ForbiddenException('You can update only your own articles');
+    }
+
     const article = await this.prisma.article.update({
       where: { id },
       data: {
@@ -71,7 +85,7 @@ export class ArticleService {
         content: dto.content,
         status: dto.status ? this.toPrismaStatus(dto.status) : undefined,
         author:
-          dto.authorId === undefined
+          actor.role !== UserRole.ADMIN || dto.authorId === undefined
             ? undefined
             : dto.authorId === null
               ? { disconnect: true }
@@ -145,9 +159,14 @@ export class ArticleService {
     };
   }
 
-  async deleteArticle(id: string): Promise<void> {
+  async deleteArticle(id: string, actor: AuthUser): Promise<void> {
     const found = await this.prisma.article.findUnique({ where: { id } });
     if (!found) throw new NotFoundException('Article not found');
+
+    if (actor.role !== UserRole.ADMIN && found.authorId !== actor.userId) {
+      throw new ForbiddenException('You can delete only your own articles');
+    }
+
     await this.prisma.article.delete({ where: { id } });
   }
 }
