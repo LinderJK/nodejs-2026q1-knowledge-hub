@@ -13,7 +13,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthRateLimitGuard } from './guards/auth-rate-limit.guard';
 import { Public } from './decorators/public.decorator';
-import { TokenPair } from './types/auth.types';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { AuthUser, TokenPair } from './types/auth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -45,5 +46,11 @@ export class AuthController {
       throw new UnauthorizedException('Refresh token is required');
     }
     return this.authService.refresh({ refreshToken: body.refreshToken });
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@CurrentUser() user: AuthUser): Promise<{ message: string }> {
+    return this.authService.logout(user);
   }
 }
