@@ -21,6 +21,10 @@ import {
   ApiGetComments,
 } from './decorators/swagger.decorators';
 import { CommentCreatePipe } from './pipe/comment-create.pipe';
+import { Roles } from '../user/decorators/roles.decorator';
+import { UserRole } from '../user/types/user.types';
+import { CurrentUser } from '../user/decorators/current-user.decorator';
+import { AuthUser } from '../user/types/auth.types';
 
 @Controller('comment')
 export class CommentController {
@@ -28,7 +32,7 @@ export class CommentController {
 
   @Get()
   @ApiGetComments()
-  getComments(@Query() query: GetCommentsQueryDto): Comment[] {
+  getComments(@Query() query: GetCommentsQueryDto): Promise<Comment[]> {
     return this.commentService.getComments(query);
   }
 
@@ -41,20 +45,24 @@ export class CommentController {
   }
 
   @Post()
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateComment()
   async createComment(
+    @CurrentUser() actor: AuthUser,
     @Body(CommentCreatePipe) dto: CreateCommentDto,
   ): Promise<Comment> {
-    return this.commentService.createComment(dto);
+    return this.commentService.createComment(dto, actor);
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiDeleteComment()
   async deleteComment(
+    @CurrentUser() actor: AuthUser,
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<void> {
-    return this.commentService.deleteComment(id);
+    return this.commentService.deleteComment(id, actor);
   }
 }

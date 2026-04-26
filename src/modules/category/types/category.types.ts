@@ -1,8 +1,5 @@
-export interface Category {
-  id: string; // uuid v4
-  name: string;
-  description: string;
-}
+import { Category } from 'generated/prisma/client';
+export type { Category };
 
 export enum CategorySortBy {
   NAME = 'name',

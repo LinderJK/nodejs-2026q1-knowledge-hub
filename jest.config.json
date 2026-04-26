@@ -4,5 +4,10 @@
   "testEnvironment": "node",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "moduleNameMapper": {
+    "^@generated/(.*)$": "<rootDir>/../generated/$1",
+    "^@prisma/client$": "<rootDir>/../generated/prisma/client"
+  },
+  "globalSetup": "<rootDir>/../scripts/jest-global-setup.cjs"
 }

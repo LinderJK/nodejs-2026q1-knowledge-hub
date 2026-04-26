@@ -1,100 +1,138 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PublicUser, User, UserSortBy } from './types/user.types';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUsersQueryDto } from './dto/get-users-query.dto';
-import { InMemoryStore } from '../../common/store/in-memory.store';
-import { GetListQueryDto } from 'src/common/store/get-list.dto';
-import { SortOrder } from 'src/common/types/sort.types';
+import { PrismaService } from 'src/integrations/prisma.service';
+import { AuthUser } from './types/auth.types';
+import { PublicUser, UserRole } from './types/user.types';
+import { UserRole as PrismaUserRole } from 'generated/prisma/enums';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly store: InMemoryStore) {}
+  private readonly publicUserSelect = {
+    id: true,
+    login: true,
+    role: true,
+    createdAt: true,
+    updatedAt: true,
+  } as const;
+
+  constructor(
+    private prisma: PrismaService
+  ) {}
 
   async createUser(user: CreateUserDto): Promise<PublicUser> {
-    const newUser: User = {
-      ...user,
-      id: crypto.randomUUID(),
-      createdAt: Date.now(), // timestamp of creation
-      updatedAt: Date.now(), // timestamp of last update
-    };
-    this.store.users.push(newUser);
-    return this.toPublicUser(newUser);
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const existingUser = await this.prisma.user.findUnique({
+      where: { login: user.login },
+    });
+    if (existingUser) {
+      throw new BadRequestException('User already exists');
+    }
+    return this.prisma.user
+      .create({
+        data: {
+          login: user.login,
+          password: hashedPassword,
+          role: user.role
+            ? (user.role as PrismaUserRole)
+            : PrismaUserRole.viewer,
+        },
+      select: this.publicUserSelect,
+      })
+      .then((created) => this.toPublicUser(created));
   }
 
-  async getUserById(id: string): Promise<PublicUser> {
-    const user = this.store.users.find((user) => user.id === id);
+  async getUserById(id: string, actor: AuthUser): Promise<PublicUser> {
+    if (actor.role !== UserRole.ADMIN && actor.userId !== id) {
+      throw new ForbiddenException('You cannot access this user');
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: this.publicUserSelect,
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
     return this.toPublicUser(user);
-  }
-
-  async updateUser(id: string, user: PublicUser): Promise<PublicUser> {
-    const userIndex = this.store.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) {
-      throw new NotFoundException('User not found');
-    }
-    this.store.users[userIndex] = {
-      ...this.store.users[userIndex],
-      ...user,
-      updatedAt: Date.now(),
-    };
-    return this.toPublicUser(this.store.users[userIndex]);
   }
 
   async updateUserPassword(
     id: string,
     oldPassword: string,
     newPassword: string,
+    actor: AuthUser,
   ): Promise<PublicUser> {
-    const user = this.store.users.find((user) => user.id === id);
+    if (actor.role !== UserRole.ADMIN && actor.userId !== id) {
+      throw new ForbiddenException('You cannot update this user');
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    if (user.password !== oldPassword) {
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isOldPasswordValid) {
       throw new ForbiddenException('Old password is incorrect');
     }
-    user.password = newPassword;
-    user.updatedAt = Date.now();
-    return this.toPublicUser(user);
+
+    return this.prisma.user
+      .update({
+      where: { id },
+      data: { password: await bcrypt.hash(newPassword, 10) },
+      select: this.publicUserSelect,
+      })
+      .then((updated) => this.toPublicUser(updated));
   }
 
   async deleteUser(id: string): Promise<void> {
-    const userIndex = this.store.users.findIndex((user) => user.id === id);
-    if (userIndex === -1) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) {
       throw new NotFoundException('User not found');
     }
-    this.store.users.splice(userIndex, 1);
-
-    // delete user from all articles
-    for (const article of this.store.articles) {
-      if (article.authorId === id) article.authorId = null;
-    }
-    // delete comments by this user
-    this.store.comments = this.store.comments.filter((c) => c.authorId !== id);
+    await this.prisma.user.delete({
+      where: { id },
+    });
   }
 
-  getUsers(query: GetUsersQueryDto): PublicUser[] {
-    const listQuery: GetListQueryDto<User> = {
-      page: query.page,
-      limit: query.limit,
-      sortBy: (query.sortBy ?? UserSortBy.CREATED_AT) as keyof User,
-      sortOrder: query.sortOrder ?? SortOrder.ASC,
+  async getUsers(query: GetUsersQueryDto): Promise<PublicUser[]> {
+    const sortBy = query.sortBy ?? 'createdAt';
+    const sortOrder = query.sortOrder ?? 'asc';
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    const users = await this.prisma.user.findMany({
+      select: this.publicUserSelect,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { [sortBy]: sortOrder },
+    });
+    return users.map((user) => this.toPublicUser(user));
+  }
+
+  private toPublicUser(user: {
+    id: string;
+    login: string;
+    role: PrismaUserRole;
+    createdAt: Date;
+    updatedAt: Date;
+  }): PublicUser {
+    return {
+      id: user.id,
+      login: user.login,
+      role: user.role as UserRole,
+      createdAt: user.createdAt.getTime(),
+      updatedAt: user.updatedAt.getTime(),
     };
-    const sorted = this.store.getFilteredAndSortedItems(
-      [...this.store.users],
-      listQuery,
-    );
-    return sorted.map((u) => this.toPublicUser(u));
-  }
-
-  private toPublicUser(user: User): PublicUser {
-    const { password: _password, ...publicUser } = user;
-    void _password;
-    return publicUser as PublicUser;
   }
 }

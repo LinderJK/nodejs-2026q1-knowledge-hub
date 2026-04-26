@@ -1,8 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ArticleSortBy, ArticleStatus } from '../types/article.types';
+import { ArticleSortBy } from '../types/article.types';
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SortOrder } from 'src/common/types/sort.types';
+import { ArticleStatus } from '../types/article.types';
 
 export class ArticleQueryDto {
   @ApiPropertyOptional({
